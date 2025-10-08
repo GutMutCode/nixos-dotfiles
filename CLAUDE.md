@@ -56,3 +56,5 @@ This is a NixOS flake-based configuration with the following key components:
 - System requires rebuild for NixOS configuration changes
 - User configuration changes applied through home-manager module
 - Custom font packages and unfree software explicitly allowlisted
+- ~/.config 폴더는 ~/nixos-dotfiles/config 의 symlink 이다.
+- sudo 명령어는 수동으로 진행.

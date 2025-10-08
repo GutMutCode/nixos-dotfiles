@@ -9,6 +9,8 @@ let
     waybar = "waybar"; # Status bar
     fcitx5 = "fcitx5"; # i18n Multilingure
     mako = "mako"; # notify
+    wallust = "wallust"; # Theme generator
+    rofi = "rofi"; # Application launcher
   };
 in
 
@@ -24,44 +26,66 @@ in
     # Add the exact package names from nixpkgs you want to allow
     "discord"
     "steam"
+    "steam-unwrapped"
     "slack"
   ];
 
   # OpenAI Codex CLI from codex-nix flake
   home.packages = with pkgs; [
-    # Stable packages
-    ripgrep # file search
-    nil # nix language lsp
-    nixpkgs-fmt
-    gcc
-    nodejs
-    neovim # code editor
-    unzip # stylua
-    cargo # rust
-    rustc
-    python312
+    # Development Tools
+    ripgrep # Fast file content search
+    nil # Nix language server
+    nixpkgs-fmt # Nix code formatter
+    gcc # C/C++ compiler
+    nodejs # JavaScript runtime
+    neovim # Terminal code editor
+    unzip # Archive extraction
+    cargo # Rust package manager
+    rustc # Rust compiler
+    python312 # Python interpreter
+    jq # JSON processor for scripts
+    bc # Calculator for shell scripts
 
-    # Desktop
-    wofi # Wayland rofi replacement
-    wl-clipboard # Wayland clipboard
+    # Hyprland Core Utilities
+    rofi-wayland # Application launcher for Wayland
+    wl-clipboard # Wayland clipboard utilities (wl-copy, wl-paste)
     waybar # Status bar for Hyprland
     mako # Notification daemon for Wayland
-    libnotify # notify-send command
-    swww # Wallpaper
-    adwaita-icon-theme # Icon theme for system icons (fixes fcitx tray icon)
+    libnotify # notify-send command for notifications
+    swww # Smooth wallpaper daemon with transitions
+    hyprpicker # Color picker for Hyprland
 
-    # Bluetooth management
-    bluez-tools # Command line tools
-    pavucontrol # Audio control GUI
+    # Screenshot & Image Tools
+    grim # Screenshot utility for Wayland
+    slurp # Screen area selection tool
+    satty # Screenshot annotation tool (alternative: swappy)
+    imagemagick # Image processing for OCR preprocessing
+    tesseract # OCR text recognition engine
 
-    discord
-    steam
+    # Clipboard Management
+    cliphist # Clipboard history manager for Wayland
+
+    # Theming & Visual
+    wallust # Color scheme generator from wallpapers
+    adwaita-icon-theme # GTK icon theme (fixes system tray icons)
+
+    # Audio & Bluetooth
+    bluez-tools # Bluetooth command line tools
+    pavucontrol # PulseAudio volume control GUI
+    playerctl # Media player controller (MPRIS)
+
+    # File Management
+    kdePackages.dolphin # KDE file manager (Qt 6)
+
+    # Applications
+    discord # Communication platform
+    steam # Gaming platform
   ] ++ (with unstablePkgs; [
     # Unstable packages - 최신 버전이 필요한 패키지들
-    claude-code
-    opencode
-    codex
-    amp-cli
+    claude-code # AI coding assistant
+    opencode # Code editor
+    codex # AI CLI tool
+    amp-cli # Amplify CLI
   ]);
 
   home = {
@@ -116,8 +140,47 @@ in
     configs;
 
   home.file."Pictures/wallpapers" = {
-    source = ./config/wallpapers;
+    source = create_symlink "${dotfiles}/wallpapers";
     recursive = true;
+  };
+
+  # Systemd user services for Hyprland
+  systemd.user.services = {
+    # Clipboard history daemon
+    cliphist = {
+      Unit = {
+        Description = "Clipboard history daemon for Wayland";
+        PartOf = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+      };
+      Service = {
+        Type = "simple";
+        ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+        Restart = "on-failure";
+        RestartSec = 3;
+      };
+      Install = {
+        WantedBy = [ "graphical-session.target" ];
+      };
+    };
+
+    # Wallpaper daemon (swww)
+    swww-daemon = {
+      Unit = {
+        Description = "Smooth Wayland wallpaper daemon";
+        PartOf = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+      };
+      Service = {
+        Type = "simple";
+        ExecStart = "${pkgs.swww}/bin/swww-daemon --format xrgb";
+        Restart = "on-failure";
+        RestartSec = 3;
+      };
+      Install = {
+        WantedBy = [ "graphical-session.target" ];
+      };
+    };
   };
 }
   
