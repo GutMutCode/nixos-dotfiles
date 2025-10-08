@@ -46,22 +46,14 @@
   #   useXkbConfig = true; # use xkb.options in tty.
   # };
 
-  # Enable the X11 windowing system. (Default GUI system in Linux)
-  services = {
-    displayManager = {
-      ly.enable = true;
-    };
-
-    xserver = {
-      enable = true;
-      autoRepeatDelay = 200;
-      autoRepeatInterval = 35;
-
-      # Configure keymap in X11
-      xkb = {
-        layout = "us, kr";
-        variant = ", kr104";
-        options = "";
+  # Wayland login manager
+  services.greetd = {
+    enable = true;
+    package = pkgs.greetd.tuigreet;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd Hyprland";
+        user = "greeter";
       };
     };
   };
@@ -80,6 +72,12 @@
     wireplumber.enable = true;
   };
 
+  # Enable hardware graphics acceleration
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true; # Required for Steam
+  };
+
   # Enable Bluetooth
   hardware.bluetooth = {
     enable = true;
@@ -92,7 +90,7 @@
         Experimental = true; # Show battery
       };
       Policy = {
-        AutoEnable = true; # 
+        AutoEnable = true; #
       };
     };
   };
@@ -189,11 +187,13 @@
   # Automatic security updates
   system.autoUpgrade = {
     enable = true;
-    flake = "/home/gmc/nixos-dotfiles";
+    flake = "path:${./.}";
     flags = [
       "--update-input"
       "nixpkgs"
-      "--no-write-lock-file"
+      "--update-input"
+      "nixpkgs-unstable"
+      "--accept-flake-config"
       "-L" # print build logs
     ];
     dates = "02:00";
@@ -221,4 +221,3 @@
   system.stateVersion = "25.05";
 
 }
-
