@@ -52,7 +52,7 @@
     package = pkgs.greetd.tuigreet;
     settings = {
       default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd Hyprland";
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --cmd ${config.programs.hyprland.package}/bin/Hyprland";
         user = "greeter";
       };
     };
@@ -134,6 +134,16 @@
   # Hyprland configuration
   programs.hyprland.enable = true;
 
+  # Desktop portals for Wayland (screen sharing / OBS capture)
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gtk
+    ];
+    config.common.default = [ "hyprland" "gtk" ];
+  };
+
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
@@ -176,11 +186,14 @@
   # accidentally delete configuration.nix.
   # system.copySystemConfiguration = true;
 
-  fonts.packages = with pkgs; [
-    maple-mono.NF-CN-unhinted
-    nerd-fonts.d2coding
-    nerd-fonts.jetbrains-mono
-  ];
+  fonts = {
+    fontDir.enable = true;
+    packages = with pkgs; [
+      maple-mono.NF-CN-unhinted
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.d2coding
+    ];
+  };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 

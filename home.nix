@@ -79,7 +79,13 @@ in
 
     # Applications
     discord # Communication platform
-    steam # Gaming platform
+    (steam.override {
+      extraPkgs = pkgs: with pkgs; [
+        noto-fonts-cjk-sans
+      ];
+    }) # Gaming platform with Korean font support
+    obs-studio # Streaming and recording suite
+    obs-studio-plugins.wlrobs # Native Wayland capture plugin for OBS
   ] ++ (with unstablePkgs; [
     # Unstable packages - 최신 버전이 필요한 패키지들
     claude-code # AI coding assistant
