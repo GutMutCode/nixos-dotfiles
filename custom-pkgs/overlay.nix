@@ -21,10 +21,17 @@ let
     "aarch64-darwin" = "3c3a9f0f9c21b3394622b102b48a0f0230283f32a763ac876ab39501a4e2176a";
   };
 
-  droidSrc = prev.fetchurl {
-    url = "${baseUrl}/factory-cli/releases/${version}/${platform}/${arch}/droid";
-    sha256 = droidSha256.${systemKey};
+  # SRI hash for x86_64-linux if upstream binary changed
+  droidSRI = {
+    "x86_64-linux" = "sha256-cxRrQpYKaeYsMYYZ0ZilL1stE4rPE/pqObz6drqR5vc=";
   };
+
+  droidSrc = prev.fetchurl (
+    { url = "${baseUrl}/factory-cli/releases/${version}/${platform}/${arch}/droid"; }
+    // (if droidSRI ? ${systemKey}
+    then { hash = droidSRI.${systemKey}; }
+    else { sha256 = droidSha256.${systemKey}; })
+  );
 in
 {
   factory-cli = prev.stdenv.mkDerivation {
