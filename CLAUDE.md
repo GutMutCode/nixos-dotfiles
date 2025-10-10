@@ -58,3 +58,5 @@ This is a NixOS flake-based configuration with the following key components:
 - Custom font packages and unfree software explicitly allowlisted
 - ~/.config 폴더는 ~/nixos-dotfiles/config 의 symlink 이다.
 - sudo 명령어는 수동으로 진행.
+- 모든 코드와 주석은 LLM이 parsing하기 쉬운 형태로 작성해야해.
+- 작업을 진행할땐 항상 우선순위 대로 진행해야해.

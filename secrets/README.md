@@ -21,3 +21,22 @@ This folder stores encrypted secrets managed by [sops-nix](https://github.com/Mi
 
 Only encrypted files should be checked in here. Plain-text drafts should be removed before committing.
 
+## Git SSH key (`home.nix`)
+
+When you want Git to use an SSH key managed by Home Manager:
+
+1. Create `secrets/home.yaml` with `sops --input-type yaml --output-type yaml secrets/home.yaml` (the file can start empty).
+2. Add your private key under the `git-ssh-key` entry, for example:
+
+   ```yaml
+   git-ssh-key: |
+     -----BEGIN OPENSSH PRIVATE KEY-----
+     ...
+     -----END OPENSSH PRIVATE KEY-----
+   ```
+
+   Make sure the private key has no extra blank lines at the top or bottom.
+3. Save the file; `sops` will encrypt it in place using the recipients from `.sops.yaml`.
+4. After rebuilding (`home-manager switch` or `nixos-rebuild switch --flake .#nixos-gmc`), the key is written to `~/.ssh/id_ed25519_github` with `0600` permissions and `ssh-agent` is started with `AddKeysToAgent confirm`.
+
+With the repo changes in `home.nix`, Git and `ssh` will automatically use `~/.ssh/id_ed25519_github` when connecting to `github.com`.
