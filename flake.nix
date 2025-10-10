@@ -18,16 +18,42 @@
     let
       system = "x86_64-linux";
       overlaysList = [ (import ./custom-pkgs/overlay.nix) ];
-      pkgs = import nixpkgs { inherit system; overlays = overlaysList; };
+      
+      allowedUnfreePackages = [
+        "nvidia-x11"
+        "nvidia-settings"
+        "discord"
+        "spotify"
+        "steam"
+        "steam-unwrapped"
+        "steam-original"
+        "steam-run"
+        "slack"
+      ];
+      
+      isCudaPackage = pkg:
+        let name = nixpkgs.lib.getName pkg;
+        in builtins.match "^(cuda_.*|libcu.*|libnv.*|cudnn.*)" name != null;
+      
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = overlaysList;
+        config.allowUnfreePredicate = pkg:
+          builtins.elem (nixpkgs.lib.getName pkg) allowedUnfreePackages || isCudaPackage pkg;
+      };
+      
       unstablePkgs = import nixpkgs-unstable {
         inherit system;
         overlays = overlaysList;
-        config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
-          "claude-code"
-          "opencode"
-          "codex"
-          "amp-cli"
-        ];
+        config.allowUnfreePredicate = pkg:
+          builtins.elem (nixpkgs.lib.getName pkg) (allowedUnfreePackages ++ [
+            "claude-code"
+            "opencode"
+            "codex"
+            "amp-cli"
+            "blender"
+            "davinci-resolve"
+          ]) || isCudaPackage pkg;
       };
     in
     {
@@ -58,22 +84,29 @@
           sops-nix.nixosModules.sops
           home-manager.nixosModules.home-manager
           {
-            # Allow unfree packages for system-level packages
-            nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
-              "nvidia-x11"
-              "nvidia-settings"
-              "factory-cli"
-            ];
+            nixpkgs.config.allowUnfreePredicate = pkg:
+              builtins.elem (nixpkgs.lib.getName pkg) allowedUnfreePackages || isCudaPackage pkg;
             nixpkgs.overlays = overlaysList;
 
             home-manager = {
-              useGlobalPkgs = false; # Don't inherit the global packages
+              useGlobalPkgs = false;
               useUserPackages = true;
               sharedModules = [
                 sops-nix.homeManagerModules.sops
-                { nixpkgs.overlays = overlaysList; }
               ];
-              users.gmc = import ./home.nix;
+              users.gmc = {
+                imports = [ ./home.nix ];
+                nixpkgs.overlays = overlaysList;
+                nixpkgs.config.allowUnfreePredicate = pkg:
+                  builtins.elem (nixpkgs.lib.getName pkg) (allowedUnfreePackages ++ [
+                    "claude-code"
+                    "opencode"
+                    "codex"
+                    "amp-cli"
+                    "blender"
+                    "davinci-resolve"
+                  ]) || isCudaPackage pkg;
+              };
               backupFileExtension = "backup";
               extraSpecialArgs = {
                 inherit unstablePkgs system;

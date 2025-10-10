@@ -39,7 +39,7 @@
       settings = {
         font = {
           normal = {
-            family = "JetBrains Mono Nerd Font";
+            family = "JetBrainsMono Nerd Font";
             style = "Regular";
           };
           size = 16;
@@ -64,9 +64,9 @@
 
     obs-studio = {
       enable = true;
-      package = (pkgs.obs-studio.override {
+      package = pkgs.obs-studio.override {
         cudaSupport = true;
-      });
+      };
       plugins = with pkgs.obs-studio-plugins; [
         wlrobs
         obs-pipewire-audio-capture

@@ -10,7 +10,6 @@
         "steam"
         "steam-unwrapped"
         "slack"
-        "blender"
       ];
       isCudaPackage = builtins.match "^(cuda_.*|libcu.*|libnv.*)" name != null;
     in

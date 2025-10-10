@@ -38,19 +38,22 @@
     playerctl
     kdePackages.dolphin
     discord
+    spotify
     (steam.override {
       extraPkgs = pkgs: with pkgs; [
         noto-fonts-cjk-sans
       ];
-    })
-    spotify
-    (blender.override {
-      cudaSupport = true;
     })
   ] ++ (with unstablePkgs; [
     claude-code
     opencode
     codex
     amp-cli
+    (blender.override {
+      cudaSupport = true;
+    })
+    davinci-resolve
+    godot
+    tshark
   ]);
 }

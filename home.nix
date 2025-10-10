@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./modules/home/unfree.nix
     ./modules/home/packages.nix
     ./modules/home/programs.nix
     ./modules/home/services.nix

@@ -33,10 +33,19 @@
     sops
   ];
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+    auto-optimise-store = true;
+  };
+
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
 
   system.autoUpgrade = {
-    enable = true;
+    enable = false;
     flake = "path:/home/gmc/nixos-dotfiles";
     flags = [
       "--update-input"

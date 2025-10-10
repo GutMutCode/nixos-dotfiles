@@ -10,6 +10,7 @@ let
     wallust = "wallust";
     rofi = "rofi";
     nvim = "nvim";
+    mako = "mako";
   };
 in
 {
