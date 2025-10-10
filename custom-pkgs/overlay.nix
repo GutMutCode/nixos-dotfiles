@@ -42,8 +42,7 @@ in
     sourceRoot = ".";
 
     nativeBuildInputs = [ ]
-      ++ lib.optionals stdenv.isLinux [ prev.autoPatchelfHook prev.makeWrapper ]
-      ++ lib.optionals stdenv.isDarwin [ prev.makeWrapper ];
+      ++ lib.optionals stdenv.isLinux [ prev.autoPatchelfHook ];
 
     buildInputs = [ ]
       ++ lib.optionals stdenv.isLinux [ prev.glibc ];
@@ -54,11 +53,16 @@ in
     dontCheck = true;
 
     installPhase = ''
-      runHook preInstall
-      install -Dm755 ${droidSrc} $out/bin/droid
-      ${prev.makeWrapper}/bin/makeWrapper $out/bin/droid $out/bin/droid \
-        --prefix PATH : ${prev.ripgrep}/bin
-      runHook postInstall
+            runHook preInstall
+            install -Dm755 ${droidSrc} "$out/libexec/factory-cli/droid"
+            mkdir -p "$out/bin"
+            cat > "$out/bin/droid" <<'EOF'
+      #!/usr/bin/env bash
+      export PATH="${prev.ripgrep}/bin:$PATH"
+      exec "$(dirname "$(readlink -f "$0")")/../libexec/factory-cli/droid" "$@"
+      EOF
+            chmod +x "$out/bin/droid"
+            runHook postInstall
     '';
 
     meta = {
