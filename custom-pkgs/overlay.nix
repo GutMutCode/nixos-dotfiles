@@ -21,21 +21,9 @@ let
     "aarch64-darwin" = "3c3a9f0f9c21b3394622b102b48a0f0230283f32a763ac876ab39501a4e2176a";
   };
 
-  rgSha256 = {
-    "x86_64-linux" = "61448b1b86e5a14f7b686315089332616f9a626a5716c5617a6a4380e159a22f";
-    "aarch64-linux" = "17e57319c5c767f4c94b05a761e06e00b84f32997195c613e54be00227183180";
-    "x86_64-darwin" = "e5a7b822d56715b4ad1f6dd4d28913b41d00c4c47f711c21b72e9a2656914b10";
-    "aarch64-darwin" = "121f087813a30c511516e0b577322304958f000490b6a70e7025805e26715f33";
-  };
-
   droidSrc = prev.fetchurl {
     url = "${baseUrl}/factory-cli/releases/${version}/${platform}/${arch}/droid";
     sha256 = droidSha256.${systemKey};
-  };
-
-  rgSrc = prev.fetchurl {
-    url = "${baseUrl}/ripgrep/${platform}/${arch}/rg";
-    sha256 = rgSha256.${systemKey};
   };
 in
 {
@@ -43,7 +31,7 @@ in
     pname = "factory-cli";
     inherit version;
 
-    srcs = [ droidSrc rgSrc ];
+    srcs = [ droidSrc ];
     sourceRoot = ".";
 
     nativeBuildInputs = [ ]
@@ -61,10 +49,8 @@ in
     installPhase = ''
       runHook preInstall
       install -Dm755 ${droidSrc} $out/bin/droid
-      rg_dir="$out/libexec/factory-cli"
-      install -Dm755 ${rgSrc} "$rg_dir/rg"
       ${prev.makeWrapper}/bin/makeWrapper $out/bin/droid $out/bin/droid \
-        --prefix PATH : "$rg_dir"
+        --prefix PATH : ${prev.ripgrep}/bin
       runHook postInstall
     '';
 
@@ -76,4 +62,3 @@ in
     };
   };
 }
-
