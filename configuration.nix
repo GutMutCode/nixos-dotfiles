@@ -4,6 +4,7 @@
   imports =
     [
       ./hardware-configuration.nix
+      ./modules/secrets.nix
     ];
 
   boot.loader.systemd-boot.enable = true;
@@ -76,6 +77,26 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true; # Required for Steam
+  };
+
+  # NVIDIA GPU drivers (RTX 4080 SUPER)
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia = {
+    # Modesetting required for Wayland compositors (Hyprland)
+    modesetting.enable = true;
+
+    # Power management (experimental)
+    powerManagement.enable = false;
+    powerManagement.finegrained = false;
+
+    # Use open source kernel modules (recommended for RTX 20 series and newer)
+    open = true;
+
+    # Enable nvidia-settings menu
+    nvidiaSettings = true;
+
+    # Driver version: stable (570.153.02)
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
   # Enable Bluetooth
@@ -151,6 +172,7 @@
     wget
     git
     alacritty
+    sops
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

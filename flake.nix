@@ -8,14 +8,20 @@
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, sops-nix, ... }:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-      unstablePkgs = import nixpkgs-unstable { 
-        inherit system; 
+      overlaysList = [ (import ./custom-pkgs/overlay.nix) ];
+      pkgs = import nixpkgs { inherit system; overlays = overlaysList; };
+      unstablePkgs = import nixpkgs-unstable {
+        inherit system;
+        overlays = overlaysList;
         config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
           "claude-code"
           "opencode"
@@ -49,14 +55,29 @@
         };
         modules = [
           ./configuration.nix
+          sops-nix.nixosModules.sops
           home-manager.nixosModules.home-manager
           {
+            # Allow unfree packages for system-level packages
+            nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) [
+              "nvidia-x11"
+              "nvidia-settings"
+              "factory-cli"
+            ];
+            nixpkgs.overlays = overlaysList;
+
             home-manager = {
               useGlobalPkgs = false; # Don't inherit the global packages
               useUserPackages = true;
+              sharedModules = [
+                sops-nix.homeManagerModules.sops
+                { nixpkgs.overlays = overlaysList; }
+              ];
               users.gmc = import ./home.nix;
               backupFileExtension = "backup";
-              extraSpecialArgs = { inherit unstablePkgs system; };
+              extraSpecialArgs = {
+                inherit unstablePkgs system;
+              };
             };
           }
         ];

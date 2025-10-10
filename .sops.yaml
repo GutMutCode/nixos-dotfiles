@@ -1,0 +1,10 @@
+# Replace `age1REPLACE...` with the real age recipient generated via `ssh-to-age`
+# or `age-keygen`. See secrets/README.md for the workflow.
+keys:
+  - &workstation age1REPLACEWITHYOURAGEPUBLICKEY
+
+creation_rules:
+  - path_regex: secrets/(system|home)\.yaml$
+    key_groups:
+      - age:
+          - *workstation
