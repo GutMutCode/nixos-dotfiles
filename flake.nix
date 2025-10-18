@@ -31,9 +31,13 @@
       url = "github:GutMutCode/opencode-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    openai-codex-nix = {
+      url = "github:GutMutCode/openai-codex-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, sops-nix, factory-cli-nix, claude-code-npm, opencode-nix, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, sops-nix, factory-cli-nix, claude-code-npm, opencode-nix, openai-codex-nix, ... }:
     let
       system = "x86_64-linux";
 
@@ -43,6 +47,7 @@
         factory-cli-nix
         claude-code-npm
         opencode-nix
+        openai-codex-nix
       ];
 
       overlaysList =

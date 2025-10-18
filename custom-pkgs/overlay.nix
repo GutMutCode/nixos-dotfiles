@@ -19,5 +19,4 @@
 #     └── default.nix
 
 final: prev: {
-  openai-codex = prev.callPackage ./openai-codex { };
 }

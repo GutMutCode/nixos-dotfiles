@@ -91,6 +91,26 @@
         "type": "indirect"
       }
     },
+    "openai-codex-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1760793063,
+        "narHash": "sha256-Sc81Cmodlkvpyq8y4kxw0XjOVtzyjffeBuQeO1IWv3s=",
+        "owner": "GutMutCode",
+        "repo": "openai-codex-nix",
+        "rev": "f7e516a12d0db66eff9d50d5453cbf8bc073538d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "GutMutCode",
+        "repo": "openai-codex-nix",
+        "type": "github"
+      }
+    },
     "opencode-nix": {
       "inputs": {
         "nixpkgs": [
@@ -118,6 +138,7 @@
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "openai-codex-nix": "openai-codex-nix",
         "opencode-nix": "opencode-nix",
         "sops-nix": "sops-nix"
       }
