@@ -61,6 +61,8 @@
         # Hardware drivers
         "nvidia-x11"
         "nvidia-settings"
+        # Fonts
+        "corefonts"
         # Communication
         "discord"
         "slack"
