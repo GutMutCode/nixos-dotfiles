@@ -19,7 +19,5 @@
 #     └── default.nix
 
 final: prev: {
-  # Add custom packages here
-  # Example:
-  # my-package = prev.callPackage ./my-package { };
+  openai-codex = prev.callPackage ./openai-codex { };
 }
