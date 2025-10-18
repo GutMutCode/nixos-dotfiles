@@ -24,7 +24,17 @@
     ];
   };
 
-  programs.firefox.enable = true;
+  programs.firefox = {
+    enable = true;
+    policies = {
+      ExtensionSettings = {
+        "{cebd391d-f568-473f-bb6e-698d08ec81ec}" = {
+          install_url = "https://addons.mozilla.org/en-US/firefox/downloads/latest/tokyo-night-dark-theme/latest.xpi";
+          installation_mode = "normal_installed";
+        };
+      };
+    };
+  };
 
   environment.systemPackages = with pkgs; [
     vim

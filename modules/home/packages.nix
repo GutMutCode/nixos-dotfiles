@@ -2,23 +2,53 @@
 
 {
   home.packages = with pkgs; [
+    # Editor
     neovim
-    ripgrep
-    fd
+
+    # LSP servers
     nil
+    lua-language-server
+    nodePackages.bash-language-server
+    pyright
+    nodePackages.typescript-language-server
+    nodePackages.vscode-langservers-extracted
+    nodePackages.yaml-language-server
+    zls
+
+    # Formatters
     nixpkgs-fmt
+    stylua
+    nodePackages.prettier
+    shfmt
+
+    # Linters
+    shellcheck
+    nodePackages.eslint_d
+    ruff
+
+    # Development tools
     gcc
     nodejs
-    unzip
+    deno
     cargo
     rustc
     python312
+    git
+    gh
+
+    # CLI utilities
+    ripgrep
+    fd
     jq
     bc
+    unzip
+
+    # Security
     sops
     age
     ssh-to-age
-    gh
+
+    # Wayland/Hyprland
     rofi-wayland
     wl-clipboard
     waybar
@@ -28,14 +58,20 @@
     grim
     slurp
     satty
-    imagemagick
-    tesseract
     cliphist
     wallust
+
+    # Image processing
+    imagemagick
+    tesseract
+
+    # System utilities
     adwaita-icon-theme
     bluez-tools
     pavucontrol
     playerctl
+
+    # Applications
     kdePackages.dolphin
     discord
     spotify
@@ -44,16 +80,23 @@
         noto-fonts-cjk-sans
       ];
     })
-  ] ++ (with unstablePkgs; [
-    claude-code
+
+    # Claude Code from npm (latest 2.0.22)
+    claude-code-npm
+    # OpenCode from npm (latest 0.15.7)
     opencode
+  ] ++ (with unstablePkgs; [
+    # Development (unstable)
     codex
     amp-cli
+    tshark
+    zig
+
+    # Creative (unstable)
     (blender.override {
       cudaSupport = true;
     })
     davinci-resolve
     godot
-    tshark
   ]);
 }

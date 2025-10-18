@@ -10,6 +10,9 @@
     ./modules/home/theme.nix
   ];
 
+  # Factory AI CLI
+  services.factory-cli.enable = true;
+
   home = {
     username = "gmc";
     homeDirectory = "/home/gmc";
