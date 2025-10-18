@@ -89,7 +89,7 @@
               "factory-cli"
               "claude-code-npm"
               "opencode"
-              "codex"
+              "openai-codex"
               "amp-cli"
               # Creative tools
               "blender"
@@ -147,7 +147,7 @@
                       "factory-cli"
                       "claude-code-npm"
                       "opencode"
-                      "codex"
+                      "openai-codex"
                       "amp-cli"
                       # Creative tools
                       "blender"

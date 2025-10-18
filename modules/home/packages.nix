@@ -85,9 +85,11 @@
     claude-code-npm
     # OpenCode from npm (latest 0.15.7)
     opencode
+
+    # OpenAI Codex from custom package (latest 0.47.0)
+    openai-codex
   ] ++ (with unstablePkgs; [
     # Development (unstable)
-    codex
     amp-cli
     tshark
     zig
