@@ -99,6 +99,7 @@
               # Creative tools
               "blender"
               "davinci-resolve"
+              "unityhub"
             ]) || isCudaPackage pkg;
       };
     in
@@ -157,6 +158,7 @@
                       # Creative tools
                       "blender"
                       "davinci-resolve"
+                      "unityhub"
                     ]) || isCudaPackage pkg;
               };
               backupFileExtension = "backup";

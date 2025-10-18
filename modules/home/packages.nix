@@ -100,5 +100,6 @@
     })
     davinci-resolve
     godot
+    unityhub
   ]);
 }
