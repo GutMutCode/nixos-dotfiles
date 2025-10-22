@@ -2,11 +2,40 @@
 
 Complete home server setup with containerized services managed by Docker Compose and Traefik.
 
+**📚 For production setup with real domain and SSL, see [DOMAIN-SETUP.md](./DOMAIN-SETUP.md)**
+**🔧 Having issues? Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)**
+
+## How It Works
+
+This setup uses **NixOS declarative configuration** to manage Docker services:
+
+```
+~/nixos-dotfiles/docker/          →  /srv/docker/
+├── docker-compose.yml           (symlink)
+├── manage.sh                    (symlink, auto-executable)
+├── setup.sh                     (symlink, auto-executable)
+├── .env.template                (symlink)
+├── traefik/
+│   ├── docker-compose.yml      (symlink)
+│   ├── traefik.yml             (symlink)
+│   ├── acme.json               (created by NixOS, 600)
+│   └── config/                 (created by NixOS)
+└── [other services]/
+    └── docker-compose.yml      (symlink)
+```
+
+**Key points:**
+- Configuration files are symlinked via `modules/services/home-server.nix`
+- Changes to files in `~/nixos-dotfiles/docker/` apply immediately
+- Runtime files (like `acme.json`) are created automatically with correct permissions
+- Scripts get execute permissions automatically
+
 ## Services Included
 
 | Service | URL | Description |
 |---------|-----|-------------|
 | Traefik | `traefik.local` | Reverse proxy and SSL management |
+| Cloudflare DDNS | (background) | Dynamic DNS updater for changing IPs |
 | Portainer | `portainer.local` | Container management UI |
 | Nextcloud | `nextcloud.local` | Personal cloud storage |
 | Jellyfin | `jellyfin.local` | Media streaming |
@@ -20,20 +49,26 @@ Complete home server setup with containerized services managed by Docker Compose
 
 ### 1. Rebuild NixOS with Docker support
 
+This will automatically create symlinks from `~/nixos-dotfiles/docker/` to `/srv/docker/` via `modules/services/home-server.nix`:
+
 ```bash
 cd ~/nixos-dotfiles
 sudo nixos-rebuild switch --flake .#nixos-gmc
 ```
 
-### 2. Copy Docker configuration to /srv/docker
+**What gets symlinked:**
+- Root files: `docker-compose.yml`, `manage.sh`, `setup.sh`, `README.md`, `.env.template`
+- Service configs: `traefik/docker-compose.yml`, `nextcloud/docker-compose.yml`, etc.
+- Runtime files created: `traefik/acme.json` (600), `traefik/config/` (not in git)
 
-```bash
-sudo mkdir -p /srv/docker
-sudo chown -R gmc:users /srv/docker
-cp -r ~/nixos-dotfiles/docker/* /srv/docker/
-```
+**Configuration management:**
+- Managed by `systemd.tmpfiles.rules` in `modules/services/home-server.nix`
+- Changes to files in `~/nixos-dotfiles/docker/` apply immediately (no rebuild)
+- Scripts (`manage.sh`, `setup.sh`) automatically get execute permissions
 
-### 3. Configure environment variables
+### 2. Configure environment variables
+
+**⚠️ Important:** The `.env` file is **NOT symlinked** and must be created manually in `/srv/docker/`:
 
 ```bash
 cd /srv/docker
@@ -41,27 +76,41 @@ cp .env.template .env
 nano .env  # Edit with your settings
 ```
 
+**Why not symlinked?**
+- Contains secrets (passwords, API tokens)
+- Should not be committed to git
+- Can optionally be managed with sops-nix (see `modules/services/home-server.nix`)
+
 **Important settings to change:**
 - `DOMAIN`: Your domain name (or keep as `local` for testing)
 - All passwords (generate strong ones!)
 - `TRAEFIK_ADMIN_AUTH`: Generate with `htpasswd -nb admin your_password`
+  - **Note:** Avoid `!` in passwords due to bash history expansion issues
 
-### 4. Create Traefik acme.json
+### 3. Traefik runtime files
 
-```bash
-cd /srv/docker/traefik
-touch acme.json
-chmod 600 acme.json
-mkdir -p config
+**✅ Already created by NixOS** during rebuild via `modules/services/home-server.nix`:
+
+```nix
+traefikRuntimeFiles = [
+  "f /srv/docker/traefik/acme.json 0600 gmc users -"
+  "d /srv/docker/traefik/config 0755 gmc users -"
+];
 ```
 
-### 5. Start all services
+**No manual action needed.** If files are missing, run:
+```bash
+sudo nixos-rebuild switch --flake .#nixos-gmc
+```
+
+### 4. Start all services
 
 ```bash
 cd /srv/docker
-chmod +x manage.sh
 ./manage.sh start
 ```
+
+**Note:** `manage.sh` is automatically executable via `system.activationScripts` in `modules/services/home-server.nix`
 
 ## Management Commands
 
@@ -255,10 +304,31 @@ http:
 
 ### Adding New Service
 
-1. Create directory: `mkdir /srv/docker/new-service`
-2. Create `docker-compose.yml` with Traefik labels
-3. Add to `SERVICES` array in `manage.sh`
-4. Start: `cd /srv/docker/new-service && docker-compose up -d`
+1. **Create service files in repository:**
+   ```bash
+   mkdir ~/nixos-dotfiles/docker/new-service
+   cd ~/nixos-dotfiles/docker/new-service
+   # Create docker-compose.yml with Traefik labels
+   ```
+
+2. **Update `modules/services/home-server.nix`:**
+   - Add `"new-service"` to `serviceDirectories` array
+   - Add symlink rule to `serviceFileLinks`:
+     ```nix
+     "L+ /srv/docker/new-service/docker-compose.yml - - - - ${dockerConfigPath}/new-service/docker-compose.yml"
+     ```
+
+3. **Rebuild NixOS to create symlinks:**
+   ```bash
+   sudo nixos-rebuild switch --flake .#nixos-gmc
+   ```
+
+4. **Add to `SERVICES` array in `manage.sh`**
+
+5. **Start service:**
+   ```bash
+   cd /srv/docker && ./manage.sh start
+   ```
 
 ## Resources
 

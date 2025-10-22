@@ -12,12 +12,26 @@ Personal NixOS configuration with Hyprland, home-manager, and modular architectu
 ├── hardware-configuration.nix
 ├── modules/
 │   ├── hardware/         # Hardware-specific configs (nvidia, bluetooth, audio)
-│   ├── services/         # System services (ssh, tor)
+│   ├── services/         # System services (ssh, tor, home-server)
 │   ├── desktop/          # Desktop environment (hyprland, fonts, i18n)
-│   ├── home/            # Home-manager modules (packages, programs, services)
+│   ├── home/            # Home-manager modules (packages, programs, services, xdg)
 │   ├── system.nix       # Core system settings
 │   └── secrets.nix      # sops-nix integration
-├── config/              # Application configs (hypr, waybar, nvim, etc.)
+├── config/              # Application configs (symlinked to ~/.config via xdg.nix)
+│   ├── hypr/            # Hyprland compositor
+│   ├── waybar/          # Status bar
+│   ├── nvim/            # Neovim editor
+│   ├── rofi/            # Application launcher
+│   ├── mako/            # Notification daemon
+│   ├── wallust/         # Dynamic theming
+│   ├── fcitx5/          # Input method
+│   └── wallpapers/      # Wallpaper collection
+├── docker/              # Home server configurations (symlinked to /srv/docker)
+│   ├── traefik/         # Reverse proxy & SSL
+│   ├── nextcloud/       # Cloud storage
+│   ├── jellyfin/        # Media server
+│   ├── portainer/       # Container management
+│   └── ...              # Additional services
 ├── custom-pkgs/         # Custom package overlays
 └── secrets/             # Encrypted secrets (sops-nix)
 ```
@@ -46,7 +60,7 @@ nixpkgs-fmt <file>
 - **Home-manager**: User environment managed declaratively
 - **sops-nix**: Encrypted secret management
 - **Hyprland**: Wayland compositor with dynamic theming (wallust)
-- **Symlinked configs**: `~/.config` → `~/nixos-dotfiles/config`
+- **Symlinked configs**: Managed via `modules/home/xdg.nix` using `mkOutOfStoreSymlink`
 
 ## Documentation
 
@@ -54,6 +68,8 @@ nixpkgs-fmt <file>
 - **[docs/secrets.md](docs/secrets.md)** - Secrets management with sops-nix
 - **[docs/theming.md](docs/theming.md)** - Wallust theming customization
 - **[docs/obs-studio.md](docs/obs-studio.md)** - OBS Studio configuration
+- **[docker/README.md](docker/README.md)** - All-in-one home server setup with Docker & Traefik
+- **[docker/TROUBLESHOOTING.md](docker/TROUBLESHOOTING.md)** - Common issues and solutions for home server
 
 ## Architecture
 
@@ -92,9 +108,18 @@ make
 - **User services**: `modules/home/services.nix`
 
 ### Desktop Environment
-- **Hyprland config**: `config/hypr/`
-- **Waybar config**: `config/waybar/`
-- **Theme**: `config/wallust/`
+Configuration files are symlinked from `~/nixos-dotfiles/config/` to `~/.config/` via `modules/home/xdg.nix`:
+
+- **Hyprland**: `config/hypr/` → `~/.config/hypr/`
+- **Waybar**: `config/waybar/` → `~/.config/waybar/`
+- **Wallust**: `config/wallust/` → `~/.config/wallust/`
+- **Rofi**: `config/rofi/` → `~/.config/rofi/`
+- **Neovim**: `config/nvim/` → `~/.config/nvim/`
+- **Mako**: `config/mako/` → `~/.config/mako/`
+- **Fcitx5**: `config/fcitx5/` → `~/.config/fcitx5/`
+- **Wallpapers**: `config/wallpapers/` → `~/Pictures/wallpapers/`
+
+**Changes are applied immediately** (no rebuild required) since these are symlinks pointing to the repository.
 
 ## State Version
 
