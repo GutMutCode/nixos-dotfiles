@@ -1,0 +1,12 @@
+[submodule "tests/claude-code-npm"]
+	path = tests/claude-code-npm
+	url = git@github.com:GutMutCode/claude-code-npm.git
+[submodule "tests/factory-cli-nix"]
+	path = tests/factory-cli-nix
+	url = git@github.com:GutMutCode/factory-cli-nix.git
+[submodule "tests/openai-codex-nix"]
+	path = tests/openai-codex-nix
+	url = git@github.com:GutMutCode/openai-codex-nix.git
+[submodule "tests/opencode"]
+	path = tests/opencode
+	url = git@github.com:GutMutCode/opencode-nix.git
