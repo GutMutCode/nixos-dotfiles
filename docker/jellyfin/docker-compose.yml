@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    networks:
+      - proxy
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      # Add your media directories:
+      # - /path/to/movies:/media/movies:ro
+      # - /path/to/tv:/media/tv:ro
+      # - /path/to/music:/media/music:ro
+    environment:
+      - TZ=${TZ}
+      - JELLYFIN_PublishedServerUrl=https://jellyfin.${DOMAIN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellyfin.entrypoints=http"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN}`)"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.docker.network=proxy"
+    # Uncomment for hardware acceleration (NVIDIA):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  jellyfin-config:
+  jellyfin-cache:
+
+networks:
+  proxy:
+    external: true

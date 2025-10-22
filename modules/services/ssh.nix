@@ -13,6 +13,14 @@
 
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 22 ];
+    allowedTCPPorts = [
+      22    # SSH
+      80    # HTTP
+      443   # HTTPS
+      2222  # Gitea SSH
+    ];
+    allowedUDPPorts = [
+      51820 # WireGuard
+    ];
   };
 }

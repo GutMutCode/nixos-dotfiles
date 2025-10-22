@@ -11,6 +11,7 @@
     ./modules/hardware/obs-virtual-camera.nix
     ./modules/services/ssh.nix
     ./modules/services/tor.nix
+    ./modules/services/docker.nix
     ./modules/desktop/hyprland.nix
     ./modules/desktop/fonts.nix
     ./modules/desktop/i18n.nix

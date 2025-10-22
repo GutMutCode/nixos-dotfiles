@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - proxy
+    volumes:
+      - homeassistant-config:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - TZ=${TZ}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.entrypoints=http"
+      - "traefik.http.routers.homeassistant.rule=Host(`home.${DOMAIN}`)"
+      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
+      - "traefik.docker.network=proxy"
+    # Uncomment if you need host network (for device discovery):
+    # network_mode: host
+
+volumes:
+  homeassistant-config:
+
+networks:
+  proxy:
+    external: true
