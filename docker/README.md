@@ -34,16 +34,19 @@ This setup uses **NixOS declarative configuration** to manage Docker services:
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| Traefik | `traefik.local` | Reverse proxy and SSL management |
+| Traefik | `https://traefik.${DOMAIN}` | Reverse proxy and SSL management |
 | Cloudflare DDNS | (background) | Dynamic DNS updater for changing IPs |
-| Portainer | `portainer.local` | Container management UI |
-| Nextcloud | `nextcloud.local` | Personal cloud storage |
-| Jellyfin | `jellyfin.local` | Media streaming |
-| Gitea | `gitea.local` | Git repository hosting |
-| Grafana | `grafana.local` | Monitoring dashboards |
-| Prometheus | `prometheus.local` | Metrics collection |
-| Home Assistant | `home.local` | Home automation |
-| WireGuard | Port 51820 | VPN server |
+| Portainer | `https://portainer.${DOMAIN}` | Container management UI |
+| Nextcloud | `https://nextcloud.${DOMAIN}` | Personal cloud storage |
+| Gitea | `https://gitea.${DOMAIN}` | Git repository hosting |
+| Jellyfin | `https://jellyfin.${DOMAIN}` | Media streaming |
+| Prometheus | `https://prometheus.${DOMAIN}` | Metrics collection |
+| Grafana | `https://grafana.${DOMAIN}` | Monitoring dashboards |
+| Home Assistant | `https://home.${DOMAIN}` | Home automation |
+| Vaultwarden | `https://vault.${DOMAIN}` | Password manager (Bitwarden) |
+| WireGuard | UDP Port 51820 | VPN server |
+
+**All services use HTTPS with automatic SSL certificates via Cloudflare DNS challenge.**
 
 ## Initial Setup
 
@@ -137,72 +140,102 @@ cd /srv/docker
 
 ## Accessing Services
 
-### Local Access (without domain)
+### Production Access (HTTPS with Domain)
 
-Add to your `/etc/hosts` (or `C:\Windows\System32\drivers\etc\hosts` on Windows):
+**This setup uses Cloudflare DNS challenge for automatic SSL certificates**, so you don't need to expose ports 80/443 directly to the internet.
 
+**Prerequisites:**
+1. Domain configured with Cloudflare DNS
+2. Cloudflare API token in `.env` (`CF_DNS_API_TOKEN`)
+3. Port forwarding or DMZ configured on router (for Traefik)
+4. WireGuard VPN for secure remote access
+
+**Access URLs:**
+- Traefik: `https://traefik.${DOMAIN}`
+- Portainer: `https://portainer.${DOMAIN}`
+- Nextcloud: `https://nextcloud.${DOMAIN}`
+- And so on...
+
+**Remote Access via VPN:**
+For secure remote access, use WireGuard VPN instead of exposing all services:
+1. Connect to WireGuard VPN (port 51820)
+2. Access services via HTTPS URLs
+3. All traffic encrypted through VPN tunnel
+
+### Local Development (Optional)
+
+For testing without domain, add to `/etc/hosts`:
 ```
-192.168.0.194  traefik.local
-192.168.0.194  portainer.local
-192.168.0.194  nextcloud.local
-192.168.0.194  jellyfin.local
-192.168.0.194  gitea.local
-192.168.0.194  grafana.local
-192.168.0.194  prometheus.local
-192.168.0.194  home.local
+<server-ip>  traefik.local portainer.local nextcloud.local
 ```
 
-Then access via browser: `http://portainer.local`
-
-### With Domain (Production)
-
-1. Point your domain DNS A records to your server IP
-2. Configure port forwarding on your router (80, 443)
-3. Update `.env` with your domain
-4. Update `traefik.yml` with your email for Let's Encrypt
-5. Restart Traefik: `cd /srv/docker/traefik && docker-compose restart`
+Then modify Traefik labels to use `.local` domain instead of `${DOMAIN}`.
 
 ## Post-Setup Configuration
 
 ### Nextcloud
-1. Access `http://nextcloud.local`
+1. Access `https://nextcloud.${DOMAIN}`
 2. Login with credentials from `.env`
-3. Install recommended apps
-4. Configure external storage if needed
+3. Install recommended apps (Calendar, Contacts, Tasks)
+4. Configure mobile apps for automatic photo backup
+5. Configure external storage if needed
 
 ### Jellyfin
-1. Access `http://jellyfin.local`
+1. Access `https://jellyfin.${DOMAIN}`
 2. Complete initial setup wizard
-3. Add media libraries (update docker-compose.yml to mount your media directories)
+3. Add media libraries:
+   - Edit `docker-compose.yml` to mount your media directories
+   - Example: `- /path/to/movies:/media/movies:ro`
 4. Enable hardware transcoding in settings (if using NVIDIA GPU)
+5. Install Jellyfin mobile apps for streaming
 
 ### Gitea
-1. Access `http://gitea.local`
-2. Complete installation
-3. Create admin account
-4. Configure SSH (use port 2222):
+1. Access `https://gitea.${DOMAIN}`
+2. Login with credentials from `.env` (auto-configured)
+3. Configure SSH (use port 2222):
    ```bash
-   git clone ssh://git@gitea.local:2222/username/repo.git
+   git clone ssh://git@${DOMAIN}:2222/username/repo.git
    ```
+4. Create repositories and push code
 
 ### Grafana
-1. Access `http://grafana.local`
+1. Access `https://grafana.${DOMAIN}`
 2. Login with credentials from `.env`
-3. Add Prometheus data source: `http://prometheus:9090`
+3. Add Prometheus data source:
+   - URL: `http://prometheus:9090`
+   - Access: Server (default)
 4. Import dashboards:
-   - Node Exporter: Dashboard ID 1860
-   - Docker: Dashboard ID 893
+   - Node Exporter Full: Dashboard ID 1860
+   - Docker Container & Host Metrics: Dashboard ID 893
+   - Traefik 2: Dashboard ID 11462
+
+### Vaultwarden (Password Manager)
+1. Access `https://vault.${DOMAIN}`
+2. Create account with email and strong master password
+3. Admin panel: `https://vault.${DOMAIN}/admin`
+   - Token from `.env`: `VAULTWARDEN_ADMIN_TOKEN`
+4. Install Bitwarden browser extensions and apps:
+   - Configure server URL: `https://vault.${DOMAIN}`
+   - Login with your account
+5. Import passwords from other password managers
 
 ### WireGuard VPN
-1. Check container logs: `./manage.sh logs wireguard`
-2. Find QR codes for client configuration in `/srv/docker/wireguard-config`
-3. Or copy config files from the same directory
+1. Check container logs for QR codes: `docker logs wireguard`
+2. Client configs located in Docker volume
+3. View configs:
+   ```bash
+   docker exec wireguard cat /config/peer1/peer1.conf
+   docker exec wireguard cat /config/peer2/peer2.conf
+   ```
+4. Install WireGuard on mobile/desktop and scan QR code or import config
+5. Test connection: access services via HTTPS while connected to VPN
 
 ### Home Assistant
-1. Access `http://home.local`
-2. Create account
-3. Configure integrations
-4. Add devices
+1. Access `https://home.${DOMAIN}`
+2. Create account on first visit
+3. Add integrations (Settings → Devices & Services)
+4. Connect smart home devices
+5. Create automations and dashboards
 
 ## Backup Strategy
 
@@ -304,30 +337,60 @@ http:
 
 ### Adding New Service
 
+**Example: Adding Vaultwarden**
+
 1. **Create service files in repository:**
    ```bash
-   mkdir ~/nixos-dotfiles/docker/new-service
-   cd ~/nixos-dotfiles/docker/new-service
-   # Create docker-compose.yml with Traefik labels
+   mkdir ~/nixos-dotfiles/docker/vaultwarden
+   nano ~/nixos-dotfiles/docker/vaultwarden/docker-compose.yml
    ```
 
-2. **Update `modules/services/home-server.nix`:**
-   - Add `"new-service"` to `serviceDirectories` array
+2. **Add Traefik labels for HTTPS:**
+   ```yaml
+   labels:
+     - "traefik.enable=true"
+     # HTTP router (redirect to HTTPS)
+     - "traefik.http.routers.vaultwarden.entrypoints=http"
+     - "traefik.http.routers.vaultwarden.rule=Host(`vault.${DOMAIN}`)"
+     - "traefik.http.routers.vaultwarden.middlewares=vaultwarden-https-redirect"
+     # HTTPS router
+     - "traefik.http.routers.vaultwarden-secure.entrypoints=https"
+     - "traefik.http.routers.vaultwarden-secure.rule=Host(`vault.${DOMAIN}`)"
+     - "traefik.http.routers.vaultwarden-secure.tls=true"
+     - "traefik.http.routers.vaultwarden-secure.tls.certresolver=cloudflare"
+     - "traefik.http.routers.vaultwarden-secure.service=vaultwarden"
+     # Middleware & Service
+     - "traefik.http.middlewares.vaultwarden-https-redirect.redirectscheme.scheme=https"
+     - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
+     - "traefik.docker.network=proxy"
+   ```
+
+3. **Update `modules/services/home-server.nix`:**
+   - Add `"vaultwarden"` to `serviceDirectories` array
    - Add symlink rule to `serviceFileLinks`:
      ```nix
-     "L+ /srv/docker/new-service/docker-compose.yml - - - - ${dockerConfigPath}/new-service/docker-compose.yml"
+     "L+ /srv/docker/vaultwarden/docker-compose.yml - - - - ${dockerConfigPath}/vaultwarden/docker-compose.yml"
      ```
 
-3. **Rebuild NixOS to create symlinks:**
+4. **Add environment variables to `/srv/docker/.env`:**
+   ```bash
+   VAULTWARDEN_ADMIN_TOKEN=<random-token>
+   ```
+
+5. **Rebuild NixOS to create symlinks:**
    ```bash
    sudo nixos-rebuild switch --flake .#nixos-gmc
    ```
 
-4. **Add to `SERVICES` array in `manage.sh`**
-
-5. **Start service:**
+6. **Start service:**
    ```bash
-   cd /srv/docker && ./manage.sh start
+   cd /srv/docker/vaultwarden
+   docker-compose --env-file ../.env up -d
+   ```
+
+7. **Verify HTTPS access:**
+   ```bash
+   curl -I https://vault.${DOMAIN}
    ```
 
 ## Resources

@@ -19,8 +19,18 @@ services:
       - '--web.enable-lifecycle'
     labels:
       - "traefik.enable=true"
+      # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.prometheus.entrypoints=http"
       - "traefik.http.routers.prometheus.rule=Host(`prometheus.${DOMAIN}`)"
+      - "traefik.http.routers.prometheus.middlewares=prometheus-https-redirect"
+      # HTTPS router
+      - "traefik.http.routers.prometheus-secure.entrypoints=https"
+      - "traefik.http.routers.prometheus-secure.rule=Host(`prometheus.${DOMAIN}`)"
+      - "traefik.http.routers.prometheus-secure.tls=true"
+      - "traefik.http.routers.prometheus-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.prometheus-secure.service=prometheus"
+      # Middleware & Service
+      - "traefik.http.middlewares.prometheus-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
       - "traefik.docker.network=proxy"
 
@@ -40,8 +50,18 @@ services:
       - GF_SERVER_ROOT_URL=https://grafana.${DOMAIN}
     labels:
       - "traefik.enable=true"
+      # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.grafana.entrypoints=http"
       - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN}`)"
+      - "traefik.http.routers.grafana.middlewares=grafana-https-redirect"
+      # HTTPS router
+      - "traefik.http.routers.grafana-secure.entrypoints=https"
+      - "traefik.http.routers.grafana-secure.rule=Host(`grafana.${DOMAIN}`)"
+      - "traefik.http.routers.grafana-secure.tls=true"
+      - "traefik.http.routers.grafana-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.grafana-secure.service=grafana"
+      # Middleware & Service
+      - "traefik.http.middlewares.grafana-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       - "traefik.docker.network=proxy"
     depends_on:

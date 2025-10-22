@@ -6,6 +6,7 @@ set -e
 DOCKER_DIR="/srv/docker"
 SERVICES=(
   "traefik"
+  "cloudflare-ddns"
   "portainer"
   "nextcloud"
   "jellyfin"

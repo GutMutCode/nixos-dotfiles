@@ -44,7 +44,7 @@ Add the following DNS records in Cloudflare Dashboard:
 Type: A
 Name: @
 Content: [Your Public IP]
-Proxy status: DNS only (grey cloud) or Proxied (orange cloud)
+Proxy status: DNS only (Free) or Proxied (Pro Use)
 TTL: Auto
 ```
 
@@ -96,25 +96,33 @@ curl ifconfig.me
 curl ipinfo.io/ip
 ```
 
-### Dynamic DNS (if IP changes frequently)
+### Dynamic DNS (Automatic with Docker)
 
-If your ISP assigns dynamic IP addresses, use a DDNS service:
+**✅ Cloudflare DDNS is included and automatic!**
 
-**Cloudflare DDNS** (recommended if using Cloudflare DNS):
+If your ISP assigns dynamic IP addresses (most home internet), the included `cloudflare-ddns` service will:
+
+- ✅ Automatically detect your public IP every 5 minutes
+- ✅ Update Cloudflare DNS records when IP changes
+- ✅ Update both root domain (@) and wildcard (*) records
+- ✅ Use the same `CF_DNS_API_TOKEN` from your `.env` file
+
+**No additional configuration needed** - it starts automatically with `./manage.sh start`
+
+**Check DDNS status:**
+
 ```bash
-# Install cloudflare-ddns or ddclient
-# Configure with your API token and domain
+# View DDNS logs
+./manage.sh logs cloudflare-ddns
+
+# Check if running
+docker ps | grep cloudflare-ddns
 ```
 
-**DuckDNS** (free alternative):
-- Visit https://www.duckdns.org
-- Create subdomain (e.g., `myhome.duckdns.org`)
-- Use DOMAIN=myhome.duckdns.org in `.env`
+**Alternative DDNS Services** (if not using Cloudflare):
 
-**No-IP** (free/paid):
-- Visit https://www.noip.com
-- Create hostname
-- Install Dynamic Update Client
+- **DuckDNS** (free): Visit https://www.duckdns.org, use subdomain like `myhome.duckdns.org`
+- **No-IP** (free/paid): Visit https://www.noip.com, install Dynamic Update Client
 
 ## Router Port Forwarding
 
@@ -122,12 +130,12 @@ Configure port forwarding in your router admin panel:
 
 ### Required Port Forwards
 
-| External Port | Internal IP:Port     | Protocol | Service           |
-|---------------|---------------------|----------|-------------------|
-| 80            | 192.168.0.194:80    | TCP      | HTTP              |
-| 443           | 192.168.0.194:443   | TCP      | HTTPS             |
-| 51820         | 192.168.0.194:51820 | UDP      | WireGuard VPN     |
-| 2222          | 192.168.0.194:2222  | TCP      | Gitea SSH (opt.)  |
+| External Port | Internal IP:Port    | Protocol | Service          |
+| ------------- | ------------------- | -------- | ---------------- |
+| 80            | 192.168.0.194:80    | TCP      | HTTP             |
+| 443           | 192.168.0.194:443   | TCP      | HTTPS            |
+| 51820         | 192.168.0.194:51820 | UDP      | WireGuard VPN    |
+| 2222          | 192.168.0.194:2222  | TCP      | Gitea SSH (opt.) |
 
 ### Router Configuration Steps
 
@@ -139,6 +147,7 @@ Configure port forwarding in your router admin panel:
 ### Verify Port Forwarding
 
 Test from external network:
+
 - Use https://www.yougetsignal.com/tools/open-ports/
 - Or test with smartphone on cellular data
 
@@ -173,7 +182,7 @@ Edit `~/nixos-dotfiles/docker/traefik/traefik.yml`:
 certificatesResolvers:
   cloudflare:
     acme:
-      email: your-actual-email@example.com  # ← Change this
+      email: your-actual-email@example.com # ← Change this
       storage: acme.json
       dnsChallenge:
         provider: cloudflare
@@ -273,6 +282,7 @@ sudo nixos-rebuild switch --flake .#nixos-gmc
 ```
 
 This will:
+
 - Create symlinks from `docker/` to `/srv/docker/`
 - Apply firewall rules
 - Enable Docker service
@@ -308,16 +318,16 @@ chmod +x manage.sh setup.sh
 
 Replace `example.com` with your actual domain:
 
-| Service        | URL                              | Credentials           |
-|----------------|----------------------------------|-----------------------|
-| Traefik        | https://traefik.example.com      | From TRAEFIK_ADMIN_AUTH |
-| Portainer      | https://portainer.example.com    | Create on first visit |
-| Nextcloud      | https://nextcloud.example.com    | From .env             |
-| Jellyfin       | https://jellyfin.example.com     | Create on first visit |
-| Gitea          | https://gitea.example.com        | Complete setup wizard |
-| Grafana        | https://grafana.example.com      | From .env             |
-| Prometheus     | https://prometheus.example.com   | No auth (internal)    |
-| Home Assistant | https://home.example.com         | Create on first visit |
+| Service        | URL                            | Credentials             |
+| -------------- | ------------------------------ | ----------------------- |
+| Traefik        | https://traefik.example.com    | From TRAEFIK_ADMIN_AUTH |
+| Portainer      | https://portainer.example.com  | Create on first visit   |
+| Nextcloud      | https://nextcloud.example.com  | From .env               |
+| Jellyfin       | https://jellyfin.example.com   | Create on first visit   |
+| Gitea          | https://gitea.example.com      | Complete setup wizard   |
+| Grafana        | https://grafana.example.com    | From .env               |
+| Prometheus     | https://prometheus.example.com | No auth (internal)      |
+| Home Assistant | https://home.example.com       | Create on first visit   |
 
 ### SSL Certificate Verification
 
@@ -329,6 +339,7 @@ Replace `example.com` with your actual domain:
 ### External Access Test
 
 Test from outside your network:
+
 - Use smartphone on cellular data (not WiFi)
 - Or use online tools: https://www.whatsmydns.net/
 
@@ -337,6 +348,7 @@ Test from outside your network:
 ### SSL Certificate Not Issued
 
 **Symptoms:**
+
 - Browser shows "SSL Error" or "Certificate Invalid"
 - Traefik logs show ACME errors
 
@@ -388,6 +400,7 @@ curl -X GET "https://api.cloudflare.com/client/v4/user/tokens/verify" \
 ```
 
 Expected response:
+
 ```json
 {
   "success": true,
@@ -401,19 +414,23 @@ Expected response:
 ### Service Not Accessible
 
 **Check service status:**
+
 ```bash
 docker ps
 ./manage.sh status
 ```
 
 **Check Traefik dashboard:**
+
 ```
 https://traefik.yourdomain.com
 ```
+
 - Verify routers are listed
 - Check if backends are healthy
 
 **Verify Docker network:**
+
 ```bash
 docker network inspect proxy
 ```
@@ -421,6 +438,7 @@ docker network inspect proxy
 ### Port Forwarding Not Working
 
 **Test from external network:**
+
 ```bash
 # Use online tool
 https://www.yougetsignal.com/tools/open-ports/
@@ -430,6 +448,7 @@ nc -zv your_public_ip 443
 ```
 
 **Common Issues:**
+
 1. Double NAT (ISP router + your router)
 2. ISP blocks residential servers
 3. Router firewall separate from port forwarding rules
@@ -437,11 +456,13 @@ nc -zv your_public_ip 443
 ### WireGuard VPN Issues
 
 **Check WireGuard logs:**
+
 ```bash
 ./manage.sh logs wireguard
 ```
 
 **Get client configs:**
+
 ```bash
 # QR codes and configs are in:
 ls -la /srv/docker/wireguard-config/
@@ -461,11 +482,12 @@ http:
     vpn-only:
       ipWhiteList:
         sourceRange:
-          - "10.13.13.0/24"  # WireGuard network
+          - "10.13.13.0/24" # WireGuard network
           - "192.168.0.0/24" # Local network
 ```
 
 Apply to sensitive services in their docker-compose.yml:
+
 ```yaml
 - "traefik.http.routers.portainer.middlewares=vpn-only@file"
 ```
@@ -473,6 +495,7 @@ Apply to sensitive services in their docker-compose.yml:
 ### 2. Enable Cloudflare Proxy
 
 In Cloudflare DNS settings:
+
 - Toggle proxy status to "Proxied" (orange cloud)
 - This hides your real IP address
 - Provides DDoS protection
@@ -480,6 +503,7 @@ In Cloudflare DNS settings:
 ### 3. Strong Passwords
 
 Use unique, strong passwords for each service:
+
 - Minimum 20 characters
 - Mix of letters, numbers, symbols
 - Never reuse passwords
@@ -507,6 +531,7 @@ services.fail2ban = {
 ### 6. Backup Strategy
 
 **Critical data locations:**
+
 ```
 /srv/docker/nextcloud-data/
 /srv/docker/gitea-data/
@@ -515,6 +540,7 @@ services.fail2ban = {
 ```
 
 **Automated backup script:**
+
 ```bash
 #!/usr/bin/env bash
 # Save as /root/backup-docker.sh
@@ -542,6 +568,7 @@ find /backup -name "docker-*" -mtime +7 -delete
 ### 7. Monitoring
 
 Configure alerts in Grafana:
+
 1. Access https://grafana.yourdomain.com
 2. Add Prometheus data source: `http://prometheus:9090`
 3. Import dashboards:
@@ -563,6 +590,7 @@ http:
 ```
 
 Apply to routers:
+
 ```yaml
 - "traefik.http.routers.service.middlewares=rate-limit@file"
 ```
@@ -610,6 +638,7 @@ Apply to routers:
 ## Support
 
 For issues specific to this setup:
+
 1. Check Traefik logs: `./manage.sh logs traefik`
 2. Verify DNS propagation
 3. Test port forwarding from external network

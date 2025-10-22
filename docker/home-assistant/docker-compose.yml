@@ -15,8 +15,18 @@ services:
       - TZ=${TZ}
     labels:
       - "traefik.enable=true"
+      # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.homeassistant.entrypoints=http"
       - "traefik.http.routers.homeassistant.rule=Host(`home.${DOMAIN}`)"
+      - "traefik.http.routers.homeassistant.middlewares=homeassistant-https-redirect"
+      # HTTPS router
+      - "traefik.http.routers.homeassistant-secure.entrypoints=https"
+      - "traefik.http.routers.homeassistant-secure.rule=Host(`home.${DOMAIN}`)"
+      - "traefik.http.routers.homeassistant-secure.tls=true"
+      - "traefik.http.routers.homeassistant-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.homeassistant-secure.service=homeassistant"
+      # Middleware & Service
+      - "traefik.http.middlewares.homeassistant-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"
       - "traefik.docker.network=proxy"
     # Uncomment if you need host network (for device discovery):

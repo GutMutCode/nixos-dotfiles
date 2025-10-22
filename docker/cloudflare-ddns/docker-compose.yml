@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Update root domain (@) A record
+  cloudflare-ddns-root:
+    image: oznu/cloudflare-ddns:latest
+    container_name: cloudflare-ddns-root
+    restart: unless-stopped
+    env_file:
+      - /srv/docker/.env
+    environment:
+      - SUBDOMAIN=
+      - PROXIED=false
+      - RRTYPE=A
+      - DELETE_ON_STOP=false
+      - DNS_SERVER=1.1.1.1
+    networks:
+      - proxy
+
+  # Update wildcard (*) A record
+  cloudflare-ddns-wildcard:
+    image: oznu/cloudflare-ddns:latest
+    container_name: cloudflare-ddns-wildcard
+    restart: unless-stopped
+    env_file:
+      - /srv/docker/.env
+    environment:
+      - SUBDOMAIN=*
+      - PROXIED=false
+      - RRTYPE=A
+      - DELETE_ON_STOP=false
+      - DNS_SERVER=1.1.1.1
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

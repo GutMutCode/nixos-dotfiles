@@ -19,8 +19,18 @@ services:
       - JELLYFIN_PublishedServerUrl=https://jellyfin.${DOMAIN}
     labels:
       - "traefik.enable=true"
+      # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.jellyfin.entrypoints=http"
       - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.${DOMAIN}`)"
+      - "traefik.http.routers.jellyfin.middlewares=jellyfin-https-redirect"
+      # HTTPS router
+      - "traefik.http.routers.jellyfin-secure.entrypoints=https"
+      - "traefik.http.routers.jellyfin-secure.rule=Host(`jellyfin.${DOMAIN}`)"
+      - "traefik.http.routers.jellyfin-secure.tls=true"
+      - "traefik.http.routers.jellyfin-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.jellyfin-secure.service=jellyfin"
+      # Middleware & Service
+      - "traefik.http.middlewares.jellyfin-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
       - "traefik.docker.network=proxy"
     # Uncomment for hardware acceleration (NVIDIA):

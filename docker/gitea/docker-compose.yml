@@ -40,8 +40,18 @@ services:
       - GITEA__server__ROOT_URL=https://gitea.${DOMAIN}/
     labels:
       - "traefik.enable=true"
+      # HTTP router (redirect to HTTPS)
       - "traefik.http.routers.gitea.entrypoints=http"
       - "traefik.http.routers.gitea.rule=Host(`gitea.${DOMAIN}`)"
+      - "traefik.http.routers.gitea.middlewares=gitea-https-redirect"
+      # HTTPS router
+      - "traefik.http.routers.gitea-secure.entrypoints=https"
+      - "traefik.http.routers.gitea-secure.rule=Host(`gitea.${DOMAIN}`)"
+      - "traefik.http.routers.gitea-secure.tls=true"
+      - "traefik.http.routers.gitea-secure.tls.certresolver=cloudflare"
+      - "traefik.http.routers.gitea-secure.service=gitea"
+      # Middleware & Service
+      - "traefik.http.middlewares.gitea-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
       - "traefik.docker.network=proxy"
     depends_on:

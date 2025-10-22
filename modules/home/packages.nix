@@ -60,6 +60,7 @@
     satty
     cliphist
     wallust
+    imv
 
     # Image processing
     imagemagick
@@ -83,7 +84,7 @@
 
     # Claude Code from npm (latest 2.0.22)
     claude-code-npm
-    # OpenCode from npm (latest 0.15.7)
+    # OpenCode from npm (latest 0.15.8)
     opencode
 
     # OpenAI Codex from custom package (latest 0.47.0)
