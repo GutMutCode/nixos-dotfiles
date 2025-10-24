@@ -110,5 +110,57 @@
         };
       };
     };
+
+    tmux = {
+      enable = true;
+      terminal = "screen-256color";
+      prefix = "C-s";
+      mouse = true;
+      keyMode = "vi";
+      baseIndex = 1;
+      escapeTime = 0;
+      historyLimit = 10000;
+
+      plugins = with pkgs.tmuxPlugins; [
+        vim-tmux-navigator
+      ];
+
+      extraConfig = ''
+        # status-bar style
+        set -g status-position top
+        set -g status-style bg=default,fg=default
+        set -g status-justify centre
+        set-option -g status-left '#[bg=default,fg=default,bold]#{?client_prefix,,  tmux  }#[bg=#698DDA,fg=black,bold]#{?client_prefix,  tmux  ,}'
+        set-option -g status-right '#S'
+        set-option -g window-status-format ' #I:#W '
+        set-option -g window-status-current-format '#[bg=#698DDA,fg=black] #I:#W#{?window_zoomed_flag,  , }'
+
+        # pane style
+        set -g pane-border-style fg=black
+        set -g pane-active-border-style "bg=default,fg=#698DDA"
+
+        # split window
+        unbind %
+        unbind '"'
+        bind | split-window -h
+        bind - split-window -v
+
+        # resize window
+        bind -r h resize-pane -L 5
+        bind -r j resize-pane -D 5
+        bind -r k resize-pane -U 5
+        bind -r l resize-pane -R 5
+        bind -r m resize-pane -Z
+
+        # clear bind
+        bind -r i send-keys 'C-l'
+        bind b set-option -g status
+
+        # vim copy mode
+        bind-key -T copy-mode-vi 'v' send -X begin-selection
+        bind-key -T copy-mode-vi 'y' send -X copy-selection
+        unbind -T copy-mode-vi MouseDragEnd1Pane
+      '';
+    };
   };
 }

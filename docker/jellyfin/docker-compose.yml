@@ -10,10 +10,11 @@ services:
     volumes:
       - jellyfin-config:/config
       - jellyfin-cache:/cache
-      # Add your media directories:
-      # - /path/to/movies:/media/movies:ro
-      # - /path/to/tv:/media/tv:ro
-      # - /path/to/music:/media/music:ro
+      # Media directories (read-only to prevent accidental deletion)
+      - /home/gmc/Media/Movies:/media/movies:ro
+      - /home/gmc/Media/TVShows:/media/tvshows:ro
+      - /home/gmc/Media/Music:/media/music:ro
+      - /home/gmc/Media/Videos:/media/videos:ro
     environment:
       - TZ=${TZ}
       - JELLYFIN_PublishedServerUrl=https://jellyfin.${DOMAIN}

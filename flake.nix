@@ -56,53 +56,118 @@
         # Local development/experimental packages
         ++ [ (import ./custom-pkgs/overlay.nix) ];
 
-      # System-wide unfree packages: hardware drivers and common applications
-      allowedUnfreePackages = [
-        # Hardware drivers
-        "nvidia-x11"
-        "nvidia-settings"
-        # Fonts
-        "corefonts"
-        # Communication
-        "discord"
-        "slack"
-        # Media
-        "spotify"
-        # Gaming
-        "steam"
-        "steam-unwrapped"
-        "steam-original"
-        "steam-run"
-      ];
+      # Unfree packages organized by category
+      unfreeCategories = {
+        hardware = [
+          "nvidia-x11"
+          "nvidia-settings"
+        ];
 
+        fonts = [
+          "corefonts"
+        ];
+
+        communication = [
+          "discord"
+          "slack"
+        ];
+
+        media = [
+          "spotify"
+        ];
+
+        gaming = [
+          "steam"
+          "steam-unwrapped"
+          "steam-original"
+          "steam-run"
+        ];
+
+        dev-ai = [
+          "factory-cli"
+          "claude-code-npm"
+          "opencode"
+          "openai-codex"
+          "amp-cli"
+        ];
+
+        creative = [
+          "blender"
+          "davinci-resolve"
+          "unityhub"
+        ];
+      };
+
+      # Profiles: combinations of categories for different users/environments
+      unfreeProfiles = {
+        # System level: only hardware drivers
+        system = [
+          "hardware"
+        ];
+
+        # Full desktop: all categories
+        desktop-full = [
+          "hardware"
+          "fonts"
+          "communication"
+          "media"
+          "gaming"
+          "dev-ai"
+          "creative"
+        ];
+
+        # Work laptop: no gaming/creative
+        laptop-work = [
+          "hardware"
+          "fonts"
+          "communication"
+          "dev-ai"
+        ];
+
+        # Development only
+        dev-only = [
+          "hardware"
+          "fonts"
+          "communication"
+          "dev-ai"
+        ];
+
+        # Server minimal
+        server-minimal = [
+          "hardware"
+        ];
+      };
+
+      # Helper functions
+      lib = nixpkgs.lib;
+
+      # Convert category list to package list
+      categoriesToPackages = categories:
+        lib.flatten (map (cat: unfreeCategories.${cat}) categories);
+
+      # CUDA package detection
       isCudaPackage = pkg:
-        let name = nixpkgs.lib.getName pkg;
+        let name = lib.getName pkg;
         in builtins.match "^(cuda_.*|libcu.*|libnv.*|cudnn.*)" name != null;
+
+      # Create allowUnfreePredicate from package list
+      mkUnfreePredicate = allowedList: pkg:
+        builtins.elem (lib.getName pkg) allowedList || isCudaPackage pkg;
+
+      # Create predicate from profile name
+      mkProfilePredicate = profileName:
+        mkUnfreePredicate (categoriesToPackages unfreeProfiles.${profileName});
 
       pkgs = import nixpkgs {
         inherit system;
         overlays = overlaysList;
-        config.allowUnfreePredicate = pkg:
-          builtins.elem (nixpkgs.lib.getName pkg) allowedUnfreePackages || isCudaPackage pkg;
+        config.allowUnfreePredicate = mkProfilePredicate "system";
       };
 
       unstablePkgs = import nixpkgs-unstable {
         inherit system;
         overlays = overlaysList;
-        config.allowUnfreePredicate = pkg:
-          builtins.elem (nixpkgs.lib.getName pkg)
-            (allowedUnfreePackages ++ [
-              # Development/AI tools
-              "factory-cli"
-              "claude-code-npm"
-              "opencode"
-              "openai-codex"
-              "amp-cli"
-              # Creative tools
-              "blender"
-              "davinci-resolve"
-              "unityhub"
-            ]) || isCudaPackage pkg;
+        config.allowUnfreePredicate = mkProfilePredicate "desktop-full";
       };
     in
     {
@@ -133,8 +198,7 @@
           sops-nix.nixosModules.sops
           home-manager.nixosModules.home-manager
           {
-            nixpkgs.config.allowUnfreePredicate = pkg:
-              builtins.elem (nixpkgs.lib.getName pkg) allowedUnfreePackages || isCudaPackage pkg;
+            nixpkgs.config.allowUnfreePredicate = mkProfilePredicate "system";
             nixpkgs.overlays = overlaysList;
 
             home-manager = {
@@ -148,20 +212,7 @@
               users.gmc = {
                 imports = [ ./home.nix ];
                 nixpkgs.overlays = overlaysList;
-                nixpkgs.config.allowUnfreePredicate = pkg:
-                  builtins.elem (nixpkgs.lib.getName pkg)
-                    (allowedUnfreePackages ++ [
-                      # Development/AI tools
-                      "factory-cli"
-                      "claude-code-npm"
-                      "opencode"
-                      "openai-codex"
-                      "amp-cli"
-                      # Creative tools
-                      "blender"
-                      "davinci-resolve"
-                      "unityhub"
-                    ]) || isCudaPackage pkg;
+                nixpkgs.config.allowUnfreePredicate = mkProfilePredicate "desktop-full";
               };
               backupFileExtension = "backup";
               extraSpecialArgs = {

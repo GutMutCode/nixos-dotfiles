@@ -14,12 +14,17 @@ let
   };
 in
 {
-  xdg.configFile = builtins.mapAttrs
+  xdg.configFile = (builtins.mapAttrs
     (name: subpath: {
       source = create_symlink "${dotfiles}/${subpath}";
       recursive = true;
     })
-    configs;
+    configs) // {
+    # Default applications for file types (mimeapps.list)
+    "mimeapps.list" = {
+      source = create_symlink "${dotfiles}/mimeapps.list";
+    };
+  };
 
   home.file."Pictures/wallpapers" = {
     source = create_symlink "${dotfiles}/wallpapers";

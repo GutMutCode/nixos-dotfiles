@@ -42,6 +42,10 @@
     jq
     bc
     unzip
+    yt-dlp
+    asciinema
+    tmux
+    mosh
 
     # Security
     sops
@@ -61,10 +65,13 @@
     cliphist
     wallust
     imv
+    mpv
+    wf-recorder
 
-    # Image processing
+    # Media processing
     imagemagick
     tesseract
+    ffmpeg
 
     # System utilities
     adwaita-icon-theme

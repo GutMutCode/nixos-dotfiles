@@ -22,5 +22,8 @@
     allowedUDPPorts = [
       51820 # WireGuard
     ];
+    allowedUDPPortRanges = [
+      { from = 60000; to = 61000; }  # Mosh
+    ];
   };
 }
