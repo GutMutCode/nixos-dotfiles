@@ -35,9 +35,13 @@
       url = "github:GutMutCode/openai-codex-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-doom-emacs-unstraightened = {
+      url = "github:marienz/nix-doom-emacs-unstraightened";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, sops-nix, factory-cli-nix, claude-code-npm, opencode-nix, openai-codex-nix, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, sops-nix, factory-cli-nix, claude-code-npm, opencode-nix, openai-codex-nix, nix-doom-emacs-unstraightened, ... }:
     let
       system = "x86_64-linux";
 
@@ -206,6 +210,7 @@
               useUserPackages = true;
               sharedModules = [
                 sops-nix.homeManagerModules.sops
+                nix-doom-emacs-unstraightened.hmModule
               ]
               # Custom package modules (automatically mapped from customPackageInputs)
               ++ (map (pkg: pkg.homeManagerModules.default) customPackageInputs);
