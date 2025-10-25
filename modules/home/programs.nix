@@ -4,7 +4,7 @@
   programs = {
     doom-emacs = {
       enable = true;
-      doomDir = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos-dotfiles/config/doom.d";
+      doomDir = ../../config/doom.d;
       doomLocalDir = "${config.home.homeDirectory}/.local/share/doom";
       emacs = pkgs.emacs-pgtk;
     };
