@@ -75,12 +75,17 @@
 
     # System utilities
     adwaita-icon-theme
+    gnome-themes-extra
     bluez-tools
     pavucontrol
     playerctl
 
+    # File manager
+    xfce.thunar
+    xfce.thunar-volman
+    xfce.thunar-archive-plugin
+
     # Applications
-    kdePackages.dolphin
     discord
     spotify
     (steam.override {

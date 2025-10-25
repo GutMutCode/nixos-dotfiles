@@ -19,10 +19,46 @@ in
       source = create_symlink "${dotfiles}/${subpath}";
       recursive = true;
     })
-    configs) // {
-    # Default applications for file types (mimeapps.list)
-    "mimeapps.list" = {
-      source = create_symlink "${dotfiles}/mimeapps.list";
+    configs);
+
+  # MIME type associations for default applications
+  # Works with Thunar file manager
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      # Image files
+      "image/bmp" = "imv.desktop";
+      "image/gif" = "imv.desktop";
+      "image/jpeg" = "imv.desktop";
+      "image/jpg" = "imv.desktop";
+      "image/png" = "imv.desktop";
+      "image/svg+xml" = "imv.desktop";
+      "image/webp" = "imv.desktop";
+      "image/avif" = "imv.desktop";
+      "image/heif" = "imv.desktop";
+
+      # Video files
+      "video/mp4" = "mpv.desktop";
+      "video/mpeg" = "mpv.desktop";
+      "video/ogg" = "mpv.desktop";
+      "video/quicktime" = "mpv.desktop";
+      "video/webm" = "mpv.desktop";
+      "video/x-flv" = "mpv.desktop";
+      "video/x-matroska" = "mpv.desktop";
+      "video/x-ms-wmv" = "mpv.desktop";
+      "video/x-msvideo" = "mpv.desktop";
+      "video/mkv" = "mpv.desktop";
+
+      # Audio files
+      "audio/mpeg" = "mpv.desktop";
+      "audio/mp3" = "mpv.desktop";
+      "audio/flac" = "mpv.desktop";
+      "audio/ogg" = "mpv.desktop";
+      "audio/opus" = "mpv.desktop";
+      "audio/wav" = "mpv.desktop";
+      "audio/x-wav" = "mpv.desktop";
+      "audio/aac" = "mpv.desktop";
+      "audio/m4a" = "mpv.desktop";
     };
   };
 

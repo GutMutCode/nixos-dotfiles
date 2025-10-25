@@ -23,5 +23,12 @@
       XMODIFIERS = "@im=fcitx";
       GLFW_IM_MODULE = "ibus";
     };
+
+    # Custom fonts
+    file.".local/share/fonts/s-core-dream" = {
+      source = config.lib.file.mkOutOfStoreSymlink
+        "${config.home.homeDirectory}/nixos-dotfiles/fonts/s-core-dream";
+      recursive = true;
+    };
   };
 }
